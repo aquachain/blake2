@@ -41,6 +41,8 @@
 
 #include "blake2b-round.h"
 
+#define OPT_AQUA_BLAKE2B_INIT  (1)
+
 static const uint64_t blake2b_IV[8] =
 {
   0x6a09e667f3bcc908ULL, 0xbb67ae8584caa73bULL,
@@ -94,8 +96,35 @@ int blake2b_init_param( blake2b_state *S, const blake2b_param *P )
 /* Some sort of default parameter block initialization, for sequential blake2b */
 int blake2b_init( blake2b_state *S, size_t outlen )
 {
+#if OPT_AQUA_BLAKE2B_INIT
+  static blake2b_state S32;
+  static blake2b_state S64;
+  static int s_inited = 0;
+  if (!s_inited) {
+    blake2b_param P32, P64;
+    memset(&P32, 0, sizeof(P32));
+    memset(&P64, 0, sizeof(P64));
+    P32.digest_length = 32;
+    P64.digest_length = 64;
+    P32.fanout = P64.fanout = 1;
+    P32.depth = P64.depth = 1;
+    blake2b_init_param(&S32, &P32);
+    blake2b_init_param(&S64, &P64);
+    s_inited = 1;
+  }
+  if (outlen == 32) {
+    *S = S32;
+  }
+  else if (outlen == 64) {
+    *S = S64;
+  }
+  else {
+    return -1;
+  }
+  return 0;
+#else
   blake2b_param P[1];
-
+  
   if ( ( !outlen ) || ( outlen > BLAKE2B_OUTBYTES ) ) return -1;
 
   P->digest_length = (uint8_t)outlen;
@@ -112,6 +141,7 @@ int blake2b_init( blake2b_state *S, size_t outlen )
   memset( P->personal, 0, sizeof( P->personal ) );
 
   return blake2b_init_param( S, P );
+#endif
 }
 
 int blake2b_init_key( blake2b_state *S, size_t outlen, const void *key, size_t keylen )
