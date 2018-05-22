@@ -30,6 +30,22 @@
   #define BLAKE2_INLINE inline
 #endif
 
+/* Argon2 Team - Begin Code */
+/*
+Not an exhaustive list, but should cover the majority of modern platforms
+Additionally, the code will always be correct---this is only a performance
+tweak.
+*/
+#if (defined(__BYTE_ORDER__) &&                                                \
+     (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)) ||                           \
+    defined(__LITTLE_ENDIAN__) || defined(__ARMEL__) || defined(__MIPSEL__) || \
+    defined(__AARCH64EL__) || defined(__amd64__) || defined(__i386__) ||       \
+    defined(_M_IX86) || defined(_M_X64) || defined(_M_AMD64) ||                \
+    defined(_M_ARM)
+#define NATIVE_LITTLE_ENDIAN
+#endif
+/* Argon2 Team - End Code */
+
 static BLAKE2_INLINE uint32_t load32( const void *src )
 {
 #if defined(NATIVE_LITTLE_ENDIAN)
@@ -153,8 +169,10 @@ static BLAKE2_INLINE uint64_t rotr64( const uint64_t w, const unsigned c )
 /* prevents compiler optimizing out memset() */
 static BLAKE2_INLINE void secure_zero_memory(void *v, size_t n)
 {
+#if 0
   static void *(*const volatile memset_v)(void *, int, size_t) = &memset;
   memset_v(v, 0, n);
+#endif
 }
 
 #endif
