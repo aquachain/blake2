@@ -23,3 +23,5 @@ at your choosing.
 More: [https://blake2.net](https://blake2.net).
 
 Contact: contact@blake2.net
+
+This version includes modifications by cryptogone to specialize the code for mining cryptocurrencies like Aquachain
